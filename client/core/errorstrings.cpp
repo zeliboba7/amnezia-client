@@ -40,6 +40,8 @@ QString errorString(ErrorCode code){
     case (OpenVpnExecutableMissing): return QObject::tr("OpenVPN executable missing");
     case (ShadowSocksExecutableMissing): return QObject::tr("ShadowSocks (ss-local) executable missing");
     case (CloakExecutableMissing): return QObject::tr("Cloak (ck-client) executable missing");
+    case (WireguardExecutableMissing): return QObject::tr("wireguard (wg) executable missing");
+    case (WireguardQuickExecutableMissing): return QObject::tr("wireguard (wg-quick) executable missing");
     case (AmneziaServiceConnectionFailed): return QObject::tr("Amnezia helper service error");
     case (OpenSslFailed): return QObject::tr("OpenSSL failed");
 

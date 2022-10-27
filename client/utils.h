@@ -46,6 +46,7 @@ public:
 
     static QString openVpnExecPath();
     static QString wireguardExecPath();
+    static QString wireguardQuickExecPath();
     static QString certUtilPath();
 
 

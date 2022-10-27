@@ -235,6 +235,13 @@ QString Utils::wireguardExecPath()
 #endif
 }
 
+QString Utils::wireguardQuickExecPath()
+{
+#ifdef Q_OS_LINUX
+    return Utils::usrExecutable("wg-quick");
+#endif
+}
+
 QString Utils::certUtilPath()
 {
 #ifdef Q_OS_WIN

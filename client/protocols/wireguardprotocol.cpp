@@ -24,11 +24,20 @@ WireguardProtocol::~WireguardProtocol()
 void WireguardProtocol::stop()
 {
 #ifndef Q_OS_IOS
+
+#ifdef Q_OS_LINUX
+    if (!QFileInfo::exists(Utils::wireguardQuickExecPath())) {
+        qCritical() << "wg-quick executable missing!";
+        setLastError(ErrorCode::WireguardQuickExecutableMissing);
+        return;
+    }
+#else
     if (!QFileInfo::exists(Utils::wireguardExecPath())) {
         qCritical() << "Wireguard executable missing!";
         setLastError(ErrorCode::ExecutableMissing);
         return;
     }
+#endif
 
     m_wireguardStopProcess = IpcClient::CreatePrivilegedProcess();
 
@@ -45,11 +54,15 @@ void WireguardProtocol::stop()
         return;
     }
 
+#ifdef Q_OS_LINUX
+    m_wireguardStopProcess->setProgram(PermittedProcess::WireguardQuick);
+    QStringList arguments({"down", configPath()});
+    m_wireguardStopProcess->setArguments(arguments);
+#else
     m_wireguardStopProcess->setProgram(PermittedProcess::Wireguard);
-
-
     QStringList arguments({"--remove", configPath()});
     m_wireguardStopProcess->setArguments(arguments);
+#endif
 
     qDebug() << arguments.join(" ");
 
@@ -63,7 +76,12 @@ void WireguardProtocol::stop()
     });
 
     m_wireguardStopProcess->start();
+
+#ifdef Q_OS_LINUX
+    m_wireguardStopProcess->waitForFinished(1000);
+#else
     m_wireguardStopProcess->waitForFinished(10000);
+#endif
 
     setConnectionState(VpnProtocol::Disconnected);
 #endif
@@ -115,10 +133,17 @@ ErrorCode WireguardProtocol::start()
 
     WireguardProtocol::stop();
 
+#ifdef Q_OS_LINUX
+    if (!QFileInfo::exists(Utils::wireguardQuickExecPath())) {
+        setLastError(ErrorCode::WireguardQuickExecutableMissing);
+        return lastError();
+    }
+#else
     if (!QFileInfo::exists(Utils::wireguardExecPath())) {
         setLastError(ErrorCode::ExecutableMissing);
         return lastError();
     }
+#endif
 
     if (!QFileInfo::exists(configPath())) {
         setLastError(ErrorCode::ConfigMissing);
@@ -141,11 +166,15 @@ ErrorCode WireguardProtocol::start()
         return ErrorCode::AmneziaServiceConnectionFailed;
     }
 
+#ifdef Q_OS_LINUX
+    m_wireguardStartProcess->setProgram(PermittedProcess::WireguardQuick);
+    QStringList arguments({"up", configPath()});
+    m_wireguardStartProcess->setArguments(arguments);
+#else
     m_wireguardStartProcess->setProgram(PermittedProcess::Wireguard);
-
-
     QStringList arguments({"--add", configPath()});
     m_wireguardStartProcess->setArguments(arguments);
+#endif
 
     qDebug() << arguments.join(" ");
 
@@ -181,7 +210,12 @@ ErrorCode WireguardProtocol::start()
     });
 
     m_wireguardStartProcess->start();
+
+#ifdef Q_OS_LINUX
+    m_wireguardStartProcess->waitForFinished(1000);
+#else
     m_wireguardStartProcess->waitForFinished(10000);
+#endif
 
     return ErrorCode::NoError;
 #else
@@ -209,5 +243,9 @@ void WireguardProtocol::updateVpnGateway(const QString &line)
 
 QString WireguardProtocol::serviceName() const
 {
+#ifdef Q_OS_LINUX
+    return "wg0_AmneziaVPN"; // wg0 required by wg_quick syntax
+#else
     return "AmneziaVPN.WireGuard0";
+#endif
 }

@@ -13,6 +13,7 @@ namespace amnezia {
 enum PermittedProcess {
     OpenVPN,
     Wireguard,
+    WireguardQuick,
     CertUtil
 };
 
@@ -21,8 +22,12 @@ inline QString permittedProcessPath(PermittedProcess pid)
     if (pid == PermittedProcess::OpenVPN) {
         return Utils::openVpnExecPath();
     }
-    if (pid == PermittedProcess::Wireguard) {
+    else if (pid == PermittedProcess::Wireguard) {
         return Utils::wireguardExecPath();
+    }
+    else if (pid == PermittedProcess::WireguardQuick)
+    {
+        return Utils::wireguardQuickExecPath();
     }
     else if (pid == PermittedProcess::CertUtil) {
         return Utils::certUtilPath();

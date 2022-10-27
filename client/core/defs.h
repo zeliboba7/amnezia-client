@@ -52,6 +52,8 @@ enum ErrorCode
     OpenVpnExecutableMissing,
     ShadowSocksExecutableMissing,
     CloakExecutableMissing,
+    WireguardExecutableMissing,
+    WireguardQuickExecutableMissing,
     AmneziaServiceConnectionFailed,
     ExecutableMissing,
 

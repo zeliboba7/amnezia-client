@@ -523,6 +523,36 @@ public class IOSVpnProtocolImpl : NSObject {
         guard tunnel != nil else { return }
         (tunnel!.connection as? NETunnelProviderSession)?.stopTunnel()
     }
+    
+    @objc func isVPNConnected(callback: @escaping (Bool) -> Void){
+        NETunnelProviderManager.loadAllFromPreferences { (managers, error) in
+                  if let error = error {
+                      callback(false)
+                  }
+                  
+                  var manager: NETunnelProviderManager?
+                  
+                  for m in managers! {
+                      if let p = m.protocolConfiguration as? NETunnelProviderProtocol {
+                          if (p.providerBundleIdentifier == vpnBundleID) {
+                              manager = m
+                              break
+                          }
+                      }
+                  }
+                  
+                  if (manager == nil) {
+                      manager = NETunnelProviderManager()
+                  }
+                  
+              
+            if( manager!.connection.status == NEVPNStatus.connected){
+                callback(true)
+            }else{
+                callback(false)
+            }
+    }
+    }
 
     @objc func checkStatus(callback: @escaping (String, String, String) -> Void) {
         Logger.global?.log(message: "Check status")

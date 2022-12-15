@@ -224,6 +224,7 @@ SWIFT_CLASS("_TtC10AmneziaVPN18IOSVpnProtocolImpl")
 - (void)connectWithSsConfig:(NSString * _Nonnull)ssConfig ovpnConfig:(NSString * _Nonnull)ovpnConfig failureCallback:(void (^ _Nonnull)(void))failureCallback;
 - (void)disconnect;
 - (void)checkStatusWithCallback:(void (^ _Nonnull)(NSString * _Nonnull, NSString * _Nonnull, NSString * _Nonnull))callback;
+- (void)isVPNConnectedWithCallback:(void (^ _Nonnull)(BOOL * _Nonnull))callback;
 - (nonnull instancetype)init SWIFT_UNAVAILABLE;
 + (nonnull instancetype)new SWIFT_UNAVAILABLE_MSG("-init is unavailable");
 @end

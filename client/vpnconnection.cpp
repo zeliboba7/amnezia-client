@@ -128,6 +128,9 @@ void VpnConnection::checkIOSStatus()
         }
     } );
 }
+bool VpnConnection::isIosConnected(){
+    iosVpnProtocol->resume_start();
+}
 #endif
 
 const QString &VpnConnection::remoteAddress() const

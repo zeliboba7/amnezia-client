@@ -194,6 +194,8 @@ public:
         return static_cast<T *>(m_logicMap.value(std::type_index(typeid(T))));
     }
 
+    VpnConnection* m_vpnConnection;
+
 private:
     QObject *m_qmlRoot{nullptr};
 
@@ -201,7 +203,6 @@ private:
 
     QMap<Proto, PageProtocolLogicBase *> m_protocolLogicMap;
 
-    VpnConnection* m_vpnConnection;
     QThread m_vpnConnectionThread;
 
     std::shared_ptr<Settings> m_settings;

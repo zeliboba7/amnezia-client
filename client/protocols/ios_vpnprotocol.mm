@@ -17,6 +17,7 @@
 #include "UIKit/UIKit.h"
 
 
+
 namespace
 {
 IOSVpnProtocol* s_instance = nullptr;
@@ -159,7 +160,22 @@ void IOSVpnProtocol::stop()
 
 void IOSVpnProtocol::resume_start()
 {
-    
+    qDebug()<< "resume_start";
+    if (!m_controller) {
+        qDebug() << "Not correctly initialized";
+        // need to initialize m_controller
+        return;
+    }
+    [m_controller isVPNConnectedWithCallback:^(BOOL* isConnected) {
+        if(isConnected){
+            qDebug()<< "resume_start isconnected";
+            emit connectionStateChanged(VpnConnectionState::Connected);
+        }else{
+            qDebug()<< "resume_start disconnwctred";
+
+            emit connectionStateChanged(VpnConnectionState::Connected);
+        }
+    }];
 }
 
 void IOSVpnProtocol::checkStatus()
@@ -175,6 +191,7 @@ void IOSVpnProtocol::checkStatus()
         qDebug() << "Not correctly initialized";
         return;
     }
+
     
     m_checkingStatus = true;
     

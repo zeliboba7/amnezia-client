@@ -41,7 +41,10 @@ VpnLogic::VpnLogic(UiLogic *logic, QObject *parent):
     }
     else {
         onConnectionStateChanged(VpnProtocol::Disconnected);
-    }
+        }
+    //only for ios
+    uiLogic()->m_vpnConnection->isIosConnected();
+    
 }
 
 

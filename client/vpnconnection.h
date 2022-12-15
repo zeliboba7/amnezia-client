@@ -66,6 +66,10 @@ public slots:
         const ServerCredentials &credentials, DockerContainer container, const QJsonObject &containerConfig);
 
     void disconnectFromVpn();
+#ifdef Q_OS_IOS
+    void checkIOSStatus();
+    bool isIosConnected();
+#endif
 
 signals:
     void bytesChanged(quint64 receivedBytes, quint64 sentBytes);
@@ -78,9 +82,7 @@ protected slots:
     void onBytesChanged(quint64 receivedBytes, quint64 sentBytes);
     void onConnectionStateChanged(VpnProtocol::VpnConnectionState state);
 
-#ifdef Q_OS_IOS
-    void checkIOSStatus();
-#endif
+
 
 protected:
     QSharedPointer<VpnProtocol> m_vpnProtocol;

@@ -17,15 +17,15 @@ namespace libssh {
 
     Session::~Session()
     {
-        if (m_isNeedSendChannelEof) {
-            ssh_channel_send_eof(m_channel);
-        }
-        if (m_isChannelOpened) {
-            ssh_channel_close(m_channel);
-        }
-        if (m_isChannelCreated) {
-            ssh_channel_free(m_channel);
-        }
+//        if (m_isNeedSendChannelEof) {
+//            ssh_channel_send_eof(m_channel);
+//        }
+//        if (m_isChannelOpened) {
+//            ssh_channel_close(m_channel);
+//        }
+//        if (m_isChannelCreated) {
+//            ssh_channel_free(m_channel);
+//        }
         if (m_isSftpInitialized) {
             sftp_free(m_sftpSession);
         }
@@ -42,7 +42,7 @@ namespace libssh {
         }
 
         int port = credentials.port;
-        int logVerbosity = SSH_LOG_NOLOG;
+        int logVerbosity = SSH_LOG_INFO;
         std::string hostIp = credentials.hostName.toStdString();
         std::string hostUsername = credentials.userName.toStdString() + "@" + hostIp;
 
@@ -88,41 +88,41 @@ namespace libssh {
         if (error) {
             return error;
         }
-        m_channel = ssh_channel_new(m_session);
+//        m_channel = ssh_channel_new(m_session);
 
-        if (m_channel == NULL) {
-            qDebug() << ssh_get_error(m_session);
-            return fromLibsshErrorCode(ssh_get_error_code(m_session));
-        }
+//        if (m_channel == NULL) {
+//            qDebug() << ssh_get_error(m_session);
+//            return fromLibsshErrorCode(ssh_get_error_code(m_session));
+//        }
 
-        m_isChannelCreated = true;
-        int result = ssh_channel_open_session(m_channel);
+//        m_isChannelCreated = true;
+//        int result = ssh_channel_open_session(m_channel);
 
-        if (result == SSH_OK && ssh_channel_is_open(m_channel)) {
-            qDebug() << "SSH chanel opened";
-            m_isChannelOpened = true;
-        } else {
-            qDebug() << ssh_get_error(m_session);
-            return fromLibsshErrorCode(ssh_get_error_code(m_session));
-        }
+//        if (result == SSH_OK && ssh_channel_is_open(m_channel)) {
+//            qDebug() << "SSH chanel opened";
+//            m_isChannelOpened = true;
+//        } else {
+//            qDebug() << ssh_get_error(m_session);
+//            return fromLibsshErrorCode(ssh_get_error_code(m_session));
+//        }
 
-        result = ssh_channel_request_pty(m_channel);
-        if (result != SSH_OK) {
-            qDebug() << ssh_get_error(m_session);
-            return fromLibsshErrorCode(ssh_get_error_code(m_session));
-        }
+//        result = ssh_channel_request_pty(m_channel);
+//        if (result != SSH_OK) {
+//            qDebug() << ssh_get_error(m_session);
+//            return fromLibsshErrorCode(ssh_get_error_code(m_session));
+//        }
 
-        result = ssh_channel_change_pty_size(m_channel, 80, 1024);
-        if (result != SSH_OK) {
-            qDebug() << ssh_get_error(m_session);
-            return fromLibsshErrorCode(ssh_get_error_code(m_session));
-        }
+//        result = ssh_channel_change_pty_size(m_channel, 80, 1024);
+//        if (result != SSH_OK) {
+//            qDebug() << ssh_get_error(m_session);
+//            return fromLibsshErrorCode(ssh_get_error_code(m_session));
+//        }
 
-        result = ssh_channel_request_shell(m_channel);
-        if (result != SSH_OK) {
-            qDebug() << ssh_get_error(m_session);
-            return fromLibsshErrorCode(ssh_get_error_code(m_session));
-        }
+//        result = ssh_channel_request_shell(m_channel);
+//        if (result != SSH_OK) {
+//            qDebug() << ssh_get_error(m_session);
+//            return fromLibsshErrorCode(ssh_get_error_code(m_session));
+//        }
 
         return fromLibsshErrorCode(ssh_get_error_code(m_session));
     }
@@ -131,8 +131,21 @@ namespace libssh {
                                         const std::function<void(const QString &, Session &)> &cbReadStdOut,
                                         const std::function<void(const QString &, Session &)> &cbReadStdErr)
     {
+        m_channel = ssh_channel_new(m_session);
+
         if (m_channel == NULL) {
-            qDebug() << "ssh channel not initialized";
+            qDebug() << ssh_get_error(m_session);
+            return fromLibsshErrorCode(ssh_get_error_code(m_session));
+        }
+
+//        m_isChannelCreated = true;
+        int result = ssh_channel_open_session(m_channel);
+
+        if (result == SSH_OK && ssh_channel_is_open(m_channel)) {
+            qDebug() << "SSH chanel opened";
+//            m_isChannelOpened = true;
+        } else {
+            qDebug() << ssh_get_error(m_session);
             return fromLibsshErrorCode(ssh_get_error_code(m_session));
         }
 
@@ -145,12 +158,12 @@ namespace libssh {
             int bytesRead = 0;
             char buffer[bufferSize];
 
-            int bytesWritten = ssh_channel_write(m_channel, data.toUtf8(), (uint32_t)data.size());
-            if (bytesWritten == data.size() && ssh_channel_write(m_channel, "\n", 1)) {
+            int bytesWritten = ssh_channel_request_exec(m_channel, data.toUtf8());
+            if (bytesWritten == SSH_OK) {
                 auto readOutput = [&](bool isStdErr) {
                     std::string output;
-                    if (ssh_channel_is_open(m_channel) && !ssh_channel_is_eof(m_channel)) {
-                        bytesRead = ssh_channel_read_timeout(m_channel, buffer, sizeof(buffer), isStdErr, 200);
+//                    if (ssh_channel_is_open(m_channel) && !ssh_channel_is_eof(m_channel)) {
+                        bytesRead = ssh_channel_read(m_channel, buffer, sizeof(buffer), isStdErr);
                         while (bytesRead > 0)
                         {
                             output = std::string(buffer, bytesRead);
@@ -164,9 +177,9 @@ namespace libssh {
                                     cbReadStdErr(output.c_str(), *this);
                                 }
                             }
-                            bytesRead = ssh_channel_read_timeout(m_channel, buffer, sizeof(buffer), isStdErr, 2000);
+                            bytesRead = ssh_channel_read(m_channel, buffer, sizeof(buffer), isStdErr);
                         }
-                    }
+//                    }
                     return output;
                 };
 
@@ -178,12 +191,27 @@ namespace libssh {
             }
             m_isNeedSendChannelEof = true;
             return fromLibsshErrorCode(ssh_get_error_code(m_session));
+
+            //        if (m_isNeedSendChannelEof) {
+                        ssh_channel_send_eof(m_channel);
+            //        }
+            //        if (m_isChannelOpened) {
+                        ssh_channel_close(m_channel);
+            //        }
+            //        if (m_isChannelCreated) {
+                        ssh_channel_free(m_channel);
+            //        }
+                        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         });
         watcher.setFuture(future);
+
+
 
         QEventLoop wait;
         QObject::connect(this, &Session::writeToChannelFinished, &wait, &QEventLoop::quit);
         wait.exec();
+
+
 
         return watcher.result();
     }

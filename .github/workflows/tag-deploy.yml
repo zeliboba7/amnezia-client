@@ -20,7 +20,6 @@ jobs:
     - name: 'Install additional packages'
       run: |
         sudo apt-get install tree
-        tree -L 3
 
     - name: 'Install desktop Qt'
       uses: jurplel/install-qt-action@v3
@@ -139,11 +138,16 @@ jobs:
 
         ANDROID_BUILD_TOOLS_VERSION=30.0.3
 
-        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/zipalign -f -v 4 AmneziaVPN-release-unsigned.apk AmneziaVPN-release-aligned.apk
+        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/zipalign -f -v 4 main/AmneziaVPN-release-unsigned.apk AmneziaVPN-release-aligned.apk
+        
+        tree -L 3
+        
         ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/apksigner sign --out AmneziaVPN-release-signed.apk --ks keystore/debug.keystore --ks-key-alias ${{ secrets.DEBUG_ANDROID_KEYSTORE_KEY_ALIAS }} --ks-pass pass:${{secrets.DEBUG_ANDROID_KEYSTOTE_KEY_PASS }} AmneziaVPN-release-aligned.apk
+
+        tree -L 3
 
     - name: 'Upload'
       uses: actions/upload-artifact@v3
       with:
         name: Release APK
-        path: ${{ runner.temp }}/main/AmneziaVPN-release-signed.apk
+        path: AmneziaVPN-release-signed.apk

@@ -17,6 +17,11 @@ jobs:
       QIF_VERSION: 4.5
 
     steps:
+    - name: 'Install additional packages'
+      run: |
+        sudo apt-get install tree
+        tree -L 3
+
     - name: 'Install desktop Qt'
       uses: jurplel/install-qt-action@v3
       with:
@@ -129,6 +134,8 @@ jobs:
     - name: 'Signing APK'
       run: |
         pwd
+        ls
+        tree -L 3
 
         ANDROID_BUILD_TOOLS_VERSION=30.0.3
 

@@ -35,7 +35,6 @@ echo "Building App..."
 cd $BUILD_DIR
 
 echo "HOST Qt: $QT_HOST_PATH"
-echo "ARCH: ${ANDROID_ARCH}"
 
 if [[ "$ACTIONS_BUILD_TYPE" == "release" ]]; then
   BUILD_TYPE_FOR_QTCMAKE="Release"

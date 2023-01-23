@@ -325,4 +325,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Release APK
-        path: AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}.apk
+        path: main/AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}.apk

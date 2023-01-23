@@ -246,6 +246,7 @@ jobs:
     env:
       QT_VERSION: 6.4.1
       QIF_VERSION: 4.5
+      ACTIONS_BUILD_TYPE: "debug"
 
     steps:
     - name: 'Install desktop Qt'
@@ -279,6 +280,7 @@ jobs:
       with:
         submodules: 'true'
         fetch-depth: 10
+        path: main
 
     - name: 'Preparations before keystore fetching'
       run: | 
@@ -302,8 +304,6 @@ jobs:
 
     - name: 'Build project'
       run: |
-        export ACTIONS_BUILD_TYPE="debug"
-
         export QT_HOST_PATH="${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64"
         export NDK_VERSION=23c
         export ANDROID_NDK_PLATFORM=android-23
@@ -324,4 +324,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Release APK
-        path: AmneziaVPN-${ACTIONS_BUILD_TYPE}.apk
+        path: AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}.apk

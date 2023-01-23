@@ -41,11 +41,13 @@ if [[ "$ACTIONS_BUILD_TYPE" == "release" ]]; then
   BUILD_TYPE_FOR_CMAKE="release"
   BUILD_TYPE_FOR_ANDROIDDEPLOYQT="--release"
   BUILD_TYPE_FOR_COPYING="release-unsigned"
+  ARCH_SUFFIX=""
 else
   BUILD_TYPE_FOR_QTCMAKE="Debug"
   BUILD_TYPE_FOR_CMAKE="debug"
   BUILD_TYPE_FOR_ANDROIDDEPLOYQT="--debug"
   BUILD_TYPE_FOR_COPYING="debug"
+  ARCH_SUFFIX="-${ANDROID_CURRENT_ARCH}"
 fi
 
 $QT_BIN_DIR/qt-cmake -S $PROJECT_DIR \
@@ -67,7 +69,7 @@ $QT_HOST_PATH/bin/androiddeployqt \
    
 echo "............Copy apk.................."
 VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.apk
-VAR_COPY_TO=$PROJECT_DIR/AmneziaVPN-${BUILD_TYPE_FOR_CMAKE}-${ANDROID_CURRENT_ARCH}.apk
+VAR_COPY_TO=$PROJECT_DIR/AmneziaVPN-${BUILD_TYPE_FOR_CMAKE}${ARCH_SUFFIX}.apk
 
 echo "Copying from $VAR_COPY_FROM tot $VAR_COPY_TO"
 

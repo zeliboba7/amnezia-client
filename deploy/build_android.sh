@@ -67,5 +67,9 @@ $QT_HOST_PATH/bin/androiddeployqt \
     --android-platform android-31
    
 echo "............Copy apk.................."
-cp $OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.apk \
-   $PROJECT_DIR/AmneziaVPN-${ACTIONS_BUILD_TYPE}-unsigned.apk
+VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.apk
+VAR_COPY_TO=$PROJECT_DIR/AmneziaVPN-${ACTIONS_BUILD_TYPE}-unsigned.apk
+
+echo "Copying from $VAR_COPY_FROM tot $VAR_COPY_TO"
+
+cp $VAR_COPY_FROM $VAR_COPY_TO

@@ -35,13 +35,26 @@ echo "Building App..."
 cd $BUILD_DIR
 
 echo "HOST Qt: $QT_HOST_PATH"
+echo "ARCH: ${ANDROID_ARCH}"
+
+if [[ "$ACTIONS_BUILD_TYPE" == "release" ]]; then
+  BUILD_TYPE_FOR_QTCMAKE="Release"
+  BUILD_TYPE_FOR_CMAKE="release"
+  BUILD_TYPE_FOR_ANDROIDDEPLOYQT="--release"
+  BUILD_TYPE_FOR_COPYING="release-unsigned"
+else
+  BUILD_TYPE_FOR_QTCMAKE="Debug"
+  BUILD_TYPE_FOR_CMAKE="debug"
+  BUILD_TYPE_FOR_ANDROIDDEPLOYQT="--debug"
+  BUILD_TYPE_FOR_COPYING="debug"
+fi
 
 $QT_BIN_DIR/qt-cmake -S $PROJECT_DIR \
    -DQT_NO_GLOBAL_APK_TARGET_PART_OF_ALL="ON" \
    -DQT_HOST_PATH=$QT_HOST_PATH \
-   -DCMAKE_BUILD_TYPE="Release"
+   -DCMAKE_BUILD_TYPE=$BUILD_TYPE_FOR_QTCMAKE
 
-cmake --build . --config release
+cmake --build . --config $BUILD_TYPE_FOR_CMAKE
 
 echo "............APK generation.................."
 cd $OUT_APP_DIR
@@ -49,10 +62,10 @@ cd $OUT_APP_DIR
 $QT_HOST_PATH/bin/androiddeployqt \
     --output $OUT_APP_DIR/android-build \
     --gradle \
-    --release \
+    $BUILD_TYPE_FOR_ANDROIDDEPLOYQT \
     --input android-AmneziaVPN-deployment-settings.json \
     --android-platform android-31
    
 echo "............Copy apk.................."
-cp $OUT_APP_DIR/android-build/build/outputs/apk/release/android-build-release-unsigned.apk \
-   $PROJECT_DIR/AmneziaVPN-release-unsigned.apk
+cp $OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.apk \
+   $PROJECT_DIR/AmneziaVPN-${ACTIONS_BUILD_TYPE}-unsigned.apk

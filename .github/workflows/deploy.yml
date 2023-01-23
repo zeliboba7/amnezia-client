@@ -280,6 +280,17 @@ jobs:
         submodules: 'true'
         fetch-depth: 10
 
+    - name: 'Preparations before keystore fetching'
+      run: | 
+        mkdir keystore
+
+    - name: 'Getting keystore'
+      uses: actions/checkout@v3  
+      with:
+        repository: amnezia-vpn/amnezia-android-certificates
+        ssh-key: ${{ secrets.ANDROID_CERTS_SSH_PRIVATE_KEY }}
+        path: keystore
+
     - name: 'Setup ccache'
       uses: hendrikmuhs/ccache-action@v1.2
 
@@ -291,6 +302,8 @@ jobs:
 
     - name: 'Build project'
       run: |
+        export ACTIONS_BUILD_TYPE="debug"
+
         export QT_HOST_PATH="${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64"
         export NDK_VERSION=23c
         export ANDROID_NDK_PLATFORM=android-23
@@ -304,4 +317,11 @@ jobs:
         fi
 
         export QT_BIN_DIR=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/${{ matrix.arch }}/bin
+        cd main
         bash deploy/build_android.sh
+
+    - name: 'Upload'
+      uses: actions/upload-artifact@v3
+      with:
+        name: Release APK
+        path: AmneziaVPN-${ACTIONS_BUILD_TYPE}.apk

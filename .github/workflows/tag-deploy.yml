@@ -16,6 +16,7 @@ jobs:
       QT_VERSION: 6.4.1
       QIF_VERSION: 4.5
       ACTIONS_BUILD_TYPE: "release"
+      ARTIFACT_EXTENSION: "aab"
 
     steps:
 
@@ -132,11 +133,11 @@ jobs:
       run: |
         ANDROID_BUILD_TOOLS_VERSION=30.0.3
 
-        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/zipalign -f -v 4 main/AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}.apk AmneziaVPN-aligned.apk
-        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/apksigner sign --out AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.apk --ks keystore/debug.keystore --ks-key-alias ${{ secrets.DEBUG_ANDROID_KEYSTORE_KEY_ALIAS }} --ks-pass pass:${{secrets.DEBUG_ANDROID_KEYSTOTE_KEY_PASS }} AmneziaVPN-aligned.apk
+        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/zipalign -f -v 4 main/AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}.${{ env.ARTIFACT_EXTENSION }} AmneziaVPN-aligned.${{ env.ARTIFACT_EXTENSION }}
+        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/apksigner sign --out AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.${{ env.ARTIFACT_EXTENSION }} --ks keystore/debug.keystore --ks-key-alias ${{ secrets.RELEASE_ANDROID_KEYSTORE_KEY_ALIAS }} --ks-pass pass:${{secrets.RELEASE_ANDROID_KEYSTOTE_KEY_PASS }} AmneziaVPN-aligned.${{ env.ARTIFACT_EXTENSION }}
 
     - name: 'Upload'
       uses: actions/upload-artifact@v3
       with:
         name: Release APK
-        path: AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.apk
+        path: AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.${{ env.ARTIFACT_EXTENSION }}

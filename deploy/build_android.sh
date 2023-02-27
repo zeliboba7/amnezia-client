@@ -22,8 +22,8 @@ BUNDLE_DIR=$OUT_APP_DIR/$APP_FILENAME
 
 # Seacrh Qt
 if [ -z "${QT_VERSION+x}" ]; then
-QT_VERSION=6.4.1;
-QT_BIN_DIR=$HOME/Qt/$QT_VERSION/$ANDROID_CURRENT_ARCH/bin
+  QT_VERSION=6.4.1;
+  QT_BIN_DIR=$HOME/Qt/$QT_VERSION/$ANDROID_CURRENT_ARCH/bin
 fi
 
 echo "Using Qt in $QT_BIN_DIR"
@@ -57,20 +57,25 @@ $QT_BIN_DIR/qt-cmake -S $PROJECT_DIR \
 
 cmake --build . --config $BUILD_TYPE_FOR_CMAKE
 
-echo "............APK generation.................."
+echo "............${ARTIFACT_EXTENSION} generation.................."
 cd $OUT_APP_DIR
 
-$QT_HOST_PATH/bin/androiddeployqt \
-    --output $OUT_APP_DIR/android-build \
+ANDROID_DEPLOYQT_PARAMETERS="--output $OUT_APP_DIR/android-build \
     --gradle \
     $BUILD_TYPE_FOR_ANDROIDDEPLOYQT \
     --input android-AmneziaVPN-deployment-settings.json \
-    --android-platform android-33
+    --android-platform android-33"
+
+if [[ "$ACTIONS_BUILD_TYPE" == "release" ]]; then
+  ANDROID_DEPLOYQT_PARAMETERS+=" --aab"
+fi
+
+$QT_HOST_PATH/bin/androiddeployqt ${ANDROID_DEPLOYQT_PARAMETERS}
    
 echo "............Copy apk.................."
-VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.apk
-VAR_COPY_TO=$PROJECT_DIR/AmneziaVPN-${BUILD_TYPE_FOR_CMAKE}${ARCH_SUFFIX}.apk
+VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.${ARTIFACT_EXTENSION}
+VAR_COPY_TO=$PROJECT_DIR/AmneziaVPN-${BUILD_TYPE_FOR_CMAKE}${ARCH_SUFFIX}.${ARTIFACT_EXTENSION}
 
-echo "Copying from $VAR_COPY_FROM tot $VAR_COPY_TO"
+echo "Copying from $VAR_COPY_FROM to $VAR_COPY_TO"
 
 cp $VAR_COPY_FROM $VAR_COPY_TO

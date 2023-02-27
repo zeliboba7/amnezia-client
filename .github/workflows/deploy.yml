@@ -266,6 +266,7 @@ jobs:
       QT_VERSION: 6.4.1
       QIF_VERSION: 4.5
       ACTIONS_BUILD_TYPE: "debug"
+      ARTIFACT_EXTENSION: "apk"
 
     steps:
     - name: 'Install desktop Qt'
@@ -344,4 +345,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Debug APK
-        path: main/AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-${{ matrix.arch }}.apk
+        path: main/AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-${{ matrix.arch }}.${{ env.ARTIFACT_EXTENSION }}

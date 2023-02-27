@@ -119,13 +119,14 @@ jobs:
         export ANDROID_NDK_PLATFORM=android-23
         export ANDROID_NDK_HOME=${{ runner.temp }}/android-ndk-r${NDK_VERSION}
         export ANDROID_NDK_ROOT=$ANDROID_NDK_HOME
+        export ANDROID_CURRENT_ARCH="android_arm64_v8a"
 
         if [ ! -f $ANDROID_NDK_ROOT/ndk-build ]; then 
           wget https://dl.google.com/android/repository/android-ndk-r${NDK_VERSION}-linux.zip -qO ${{ runner.temp }}/ndk.zip &&
           unzip -q -d ${{ runner.temp }} ${{ runner.temp }}/ndk.zip ; 
         fi
 
-        export QT_BIN_DIR=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/android_arm64_v8a/bin
+        export QT_BIN_DIR=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/${ANDROID_CURRENT_ARCH}/bin
         cd main
         bash deploy/build_android.sh
 

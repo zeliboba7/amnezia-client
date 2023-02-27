@@ -40,14 +40,16 @@ if [[ "$ACTIONS_BUILD_TYPE" == "release" ]]; then
   BUILD_TYPE_FOR_QTCMAKE="Release"
   BUILD_TYPE_FOR_CMAKE="release"
   BUILD_TYPE_FOR_ANDROIDDEPLOYQT="--release"
-  BUILD_TYPE_FOR_COPYING="release-unsigned"
+  BUILD_TYPE_FOR_COPYING="release"
   ARCH_SUFFIX=""
+  ARTIFACT_TYPE="bundle"
 else
   BUILD_TYPE_FOR_QTCMAKE="Debug"
   BUILD_TYPE_FOR_CMAKE="debug"
   BUILD_TYPE_FOR_ANDROIDDEPLOYQT="--debug"
   BUILD_TYPE_FOR_COPYING="debug"
   ARCH_SUFFIX="-${ANDROID_CURRENT_ARCH}"
+  ARTIFACT_TYPE="apk"
 fi
 
 $QT_BIN_DIR/qt-cmake -S $PROJECT_DIR \
@@ -72,8 +74,8 @@ fi
 
 $QT_HOST_PATH/bin/androiddeployqt ${ANDROID_DEPLOYQT_PARAMETERS}
    
-echo "............Copy apk.................."
-VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.${ARTIFACT_EXTENSION}
+echo "............Copying ${ARTIFACT_EXTENSION}.................."
+VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/${ARTIFACT_TYPE}/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.${ARTIFACT_EXTENSION}
 VAR_COPY_TO=$PROJECT_DIR/AmneziaVPN-${BUILD_TYPE_FOR_CMAKE}${ARCH_SUFFIX}.${ARTIFACT_EXTENSION}
 
 echo "Copying from $VAR_COPY_FROM to $VAR_COPY_TO"

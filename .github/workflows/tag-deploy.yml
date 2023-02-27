@@ -135,7 +135,7 @@ jobs:
         ANDROID_BUILD_TOOLS_VERSION=30.0.3
 
         ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/zipalign -f -v 4 main/AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}.${{ env.ARTIFACT_EXTENSION }} AmneziaVPN-aligned.${{ env.ARTIFACT_EXTENSION }}
-        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/apksigner sign --out AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.${{ env.ARTIFACT_EXTENSION }} --ks keystore/debug.keystore --ks-key-alias ${{ secrets.RELEASE_ANDROID_KEYSTORE_KEY_ALIAS }} --ks-pass pass:${{secrets.RELEASE_ANDROID_KEYSTOTE_KEY_PASS }} AmneziaVPN-aligned.${{ env.ARTIFACT_EXTENSION }}
+        ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}/apksigner sign --out AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.${{ env.ARTIFACT_EXTENSION }} --ks keystore/release.keystore --ks-key-alias ${{ secrets.RELEASE_ANDROID_KEYSTORE_KEY_ALIAS }} --ks-pass pass:${{secrets.RELEASE_ANDROID_KEYSTOTE_KEY_PASS }} AmneziaVPN-aligned.${{ env.ARTIFACT_EXTENSION }}
 
     - name: 'Upload'
       uses: actions/upload-artifact@v3

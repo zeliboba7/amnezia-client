@@ -65,7 +65,7 @@ $QT_HOST_PATH/bin/androiddeployqt \
     --gradle \
     $BUILD_TYPE_FOR_ANDROIDDEPLOYQT \
     --input android-AmneziaVPN-deployment-settings.json \
-    --android-platform android-31
+    --android-platform android-33
    
 echo "............Copy apk.................."
 VAR_COPY_FROM=$OUT_APP_DIR/android-build/build/outputs/apk/${ACTIONS_BUILD_TYPE}/android-build-${BUILD_TYPE_FOR_COPYING}.apk

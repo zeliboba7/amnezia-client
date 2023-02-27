@@ -12,6 +12,8 @@
 #include <QApplication>
 #include <QTemporaryFile>
 #include <QFileInfo>
+#include <QThread>
+#include <QtConcurrent>
 
 #include "sftpchannel.h"
 #include "sshconnectionmanager.h"
@@ -79,7 +81,7 @@ ErrorCode ServerController::runScript(const ServerCredentials &credentials, QStr
         }
 
         qDebug().noquote() << "EXEC" << lineToExec;
-        Debug::appendSshLog("Run command:" + lineToExec);
+        Logger::appendSshLog("Run command:" + lineToExec);
 
         QSharedPointer<SshRemoteProcess> proc = client->createRemoteProcess(lineToExec.toUtf8());
 
@@ -105,7 +107,7 @@ ErrorCode ServerController::runScript(const ServerCredentials &credentials, QStr
             QString s = proc->readAllStandardOutput();
 
             if (s != "." && !s.isEmpty()) {
-                Debug::appendSshLog("Output: " + s);
+                Logger::appendSshLog("Output: " + s);
                 qDebug().noquote() << "stdout" << s;
             }
             if (cbReadStdOut) cbReadStdOut(s, proc);
@@ -114,7 +116,7 @@ ErrorCode ServerController::runScript(const ServerCredentials &credentials, QStr
         QObject::connect(proc.data(), &SshRemoteProcess::readyReadStandardError, &wait, [proc, cbReadStdErr](){
             QString s = proc->readAllStandardError();
             if (s != "." && !s.isEmpty()) {
-                Debug::appendSshLog("Output: " + s);
+                Logger::appendSshLog("Output: " + s);
                 qDebug().noquote() << "stderr" << s;
             }
             if (cbReadStdErr) cbReadStdErr(s, proc);
@@ -140,7 +142,7 @@ ErrorCode ServerController::runContainerScript(const ServerCredentials &credenti
     const std::function<void (const QString &, QSharedPointer<QSsh::SshRemoteProcess>)> &cbReadStdErr)
 {
     QString fileName = "/opt/amnezia/" + Utils::getRandomString(16) + ".sh";
-    Debug::appendSshLog("Run container script for " + ContainerProps::containerToString(container) + ":\n" + script);
+    Logger::appendSshLog("Run container script for " + ContainerProps::containerToString(container) + ":\n" + script);
 
     ErrorCode e = uploadTextFileToContainer(container, credentials, script, fileName);
     if (e) return e;
@@ -407,11 +409,17 @@ ErrorCode ServerController::removeContainer(const ServerCredentials &credentials
             genVarsForScript(credentials, container)));
 }
 
-ErrorCode ServerController::setupContainer(const ServerCredentials &credentials, DockerContainer container, QJsonObject &config)
+ErrorCode ServerController::setupContainer(const ServerCredentials &credentials, DockerContainer container,
+                                           QJsonObject &config, bool isUpdate)
 {
     qDebug().noquote() << "ServerController::setupContainer" << ContainerProps::containerToString(container);
     //qDebug().noquote() << QJsonDocument(config).toJson();
     ErrorCode e = ErrorCode::NoError;
+
+    if (!isUpdate) {
+        e = isServerPortBusy(credentials, container, config);
+        if (e) return e;
+    }
 
     e = installDockerWorker(credentials, container);
     if (e) return e;
@@ -449,7 +457,7 @@ ErrorCode ServerController::updateContainer(const ServerCredentials &credentials
     qDebug() << "ServerController::updateContainer for container" << container << "reinstall required is" << reinstallRequred;
 
     if (reinstallRequred) {
-        return setupContainer(credentials, container, newConfig);
+        return setupContainer(credentials, container, newConfig, true);
     }
     else {
         ErrorCode e = configureContainerWorker(credentials, container, newConfig);
@@ -528,14 +536,44 @@ ErrorCode ServerController::installDockerWorker(const ServerCredentials &credent
         stdOut += data + "\n";
     };
 
-    ErrorCode e = runScript(credentials,
-        replaceVars(amnezia::scriptData(SharedScriptType::install_docker),
-            genVarsForScript(credentials)),
-                cbReadStdOut, cbReadStdErr);
+    QFutureWatcher<ErrorCode> watcher;
+
+    QFuture<ErrorCode> future = QtConcurrent::run([this, &stdOut, &cbReadStdOut, &cbReadStdErr, &credentials]() {
+        do {
+            if (m_cancelInstallation) {
+                return ErrorCode::ServerCancelInstallation;
+            }
+            stdOut.clear();
+            runScript(credentials,
+                      replaceVars(amnezia::scriptData(SharedScriptType::check_server_is_busy),
+                                  genVarsForScript(credentials)), cbReadStdOut, cbReadStdErr);
+            if (!stdOut.isEmpty() || stdOut.contains("Unable to acquire the dpkg frontend lock")) {
+                emit serverIsBusy(true);
+                QThread::msleep(1000);
+            }
+        } while (!stdOut.isEmpty());
+        return ErrorCode::NoError;
+    });
+
+    QEventLoop wait;
+    QObject::connect(&watcher, &QFutureWatcher<ErrorCode>::finished, &wait, &QEventLoop::quit);
+    watcher.setFuture(future);
+    wait.exec();
+
+    m_cancelInstallation = false;
+    emit serverIsBusy(false);
+
+    if (future.result() != ErrorCode::NoError) {
+        return future.result();
+    }
+
+    ErrorCode error = runScript(credentials,
+                                replaceVars(amnezia::scriptData(SharedScriptType::install_docker),
+                                            genVarsForScript(credentials)), cbReadStdOut, cbReadStdErr);
 
     if (stdOut.contains("command not found")) return ErrorCode::ServerDockerFailedError;
 
-    return e;
+    return error;
 }
 
 ErrorCode ServerController::prepareHostWorker(const ServerCredentials &credentials, DockerContainer container, const QJsonObject &config)
@@ -796,6 +834,11 @@ SshConnection *ServerController::connectToHost(const SshConnectionParameters &ss
     return client;
 }
 
+void ServerController::setCancelInstallation(const bool cancel)
+{
+    m_cancelInstallation = cancel;
+}
+
 void ServerController::disconnectFromHost(const ServerCredentials &credentials)
 {
     SshConnection *client = acquireConnection(sshParams(credentials));
@@ -818,4 +861,36 @@ QString ServerController::replaceVars(const QString &script, const Vars &vars)
     }
     //qDebug().noquote() << script;
     return s;
+}
+
+ErrorCode ServerController::isServerPortBusy(const ServerCredentials &credentials, DockerContainer container, const QJsonObject &config)
+{
+    QString stdOut;
+    auto cbReadStdOut = [&](const QString &data, QSharedPointer<QSsh::SshRemoteProcess> proc) {
+        stdOut += data + "\n";
+    };
+    auto cbReadStdErr = [&](const QString &data, QSharedPointer<QSsh::SshRemoteProcess> ) {
+        stdOut += data + "\n";
+    };
+
+    const QString containerString = ProtocolProps::protoToString(ContainerProps::defaultProtocol(container));
+    const QJsonObject containerConfig = config.value(containerString).toObject();
+
+    QStringList fixedPorts = ContainerProps::fixedPortsForContainer(container);
+
+    QString port = containerConfig.value(config_key::port).toString();
+    QString transportProto = containerConfig.value(config_key::transport_proto).toString();
+
+    QString script = QString("sudo lsof -i -P -n | grep -E ':%1").arg(port);
+    for (auto &port : fixedPorts) {
+        script = script.append("|:%1").arg(port);
+    }
+    script = script.append("' | grep -i %1").arg(transportProto);
+    runScript(credentials,
+              replaceVars(script, genVarsForScript(credentials, container)), cbReadStdOut, cbReadStdErr);
+
+    if (!stdOut.isEmpty()) {
+        return ErrorCode::ServerPortAlreadyAllocatedError;
+    }
+    return ErrorCode::NoError;
 }

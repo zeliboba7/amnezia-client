@@ -20,7 +20,7 @@ jobs:
         host: 'linux'
         target: 'desktop'
         arch: 'gcc_64'
-        modules: 'qtremoteobjects qt5compat'
+        modules: 'qtremoteobjects qt5compat qtshadertools'
         dir: ${{ runner.temp }}
         setup-python: 'true'
         tools: 'tools_ifw'
@@ -38,16 +38,23 @@ jobs:
 
     - name: 'Build project'
       run: |
+        sudo apt-get install libxkbcommon-x11-0
         export QT_BIN_DIR=${{ runner.temp }}/Qt/${{ env.QT_VERSION }}/gcc_64/bin
         export QIF_BIN_DIR=${{ runner.temp }}/Qt/Tools/QtInstallerFramework/${{ env.QIF_VERSION }}/bin
         bash deploy/build_linux.sh
 
-    - name: 'Upload artifact'
+    - name: 'Upload installer artifact'
       uses: actions/upload-artifact@v3
       with:
-        name: AmneziaVPN_Linux
+        name: AmneziaVPN_Linux_installer
         path: deploy/AmneziaVPN_Linux_Installer
-        retention-days: 3
+        retention-days: 7
+    - name: 'Upload unpacked artifact'
+      uses: actions/upload-artifact@v3
+      with:
+        name: AmneziaVPN_Linux_unpacked
+        path: deploy/AppDir
+        retention-days: 7
 
 # ------------------------------------------------------
 
@@ -77,7 +84,7 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
-        modules: 'qtremoteobjects qt5compat'
+        modules: 'qtremoteobjects qt5compat qtshadertools'
         dir: ${{ runner.temp }}
         setup-python: 'true'
         tools: 'tools_ifw'
@@ -97,12 +104,18 @@ jobs:
         set QIF_BIN_DIR="${{ runner.temp }}\\Qt\\Tools\\QtInstallerFramework\\${{ env.QIF_VERSION }}\\bin"
         call deploy\\build_windows.bat
 
-    - name: 'Upload artifact'
+    - name: 'Upload installer artifact'
       uses: actions/upload-artifact@v3
       with:
-        name: AmneziaVPN_Windows
+        name: AmneziaVPN_Windows_installer
         path: AmneziaVPN_x${{ env.BUILD_ARCH }}.exe
-        retention-days: 3
+        retention-days: 7
+    - name: 'Upload unpacked artifact'
+      uses: actions/upload-artifact@v3
+      with:
+        name: AmneziaVPN_Windows_unpacked
+        path: deploy\\build_${{ env.BUILD_ARCH }}\\client\\Release
+        retention-days: 7
 
 # ------------------------------------------------------
 
@@ -170,15 +183,15 @@ jobs:
         mkdir build-ios
         $QT_IOS_BIN/qt-cmake . -B build-ios -GXcode -DQT_HOST_PATH=$QT_MACOS_ROOT_DIR
 
-    - name: iOS Build/Release With Multiple Targets Action
-      uses: kumarsunil0007/build-ios-action@latest
-      with:
-        project-path: build-ios/AmneziaVPN.xcodeproj
-        p12-base64: ~/amnezia-vpn/amnezia-ios-certificates/certs/distribution/443886Q5PL.p12
-        mobileprovision-base64: ~/amnezia-vpn/amnezia-ios-certificates/testprofilez.mobileprovision
-        code-signing-identity:  'iOS Distribution'
-        team-id: 'X7UJ388FXK'
-        configuration: Release
+#    - name: iOS Build/Release With Multiple Targets Action
+#      uses: kumarsunil0007/build-ios-action@latest
+#      with:
+#        project-path: build-ios/AmneziaVPN.xcodeproj
+#        p12-base64: ~/amnezia-vpn/amnezia-ios-certificates/certs/distribution/443886Q5PL.p12
+#        mobileprovision-base64: ~/amnezia-vpn/amnezia-ios-certificates/testprofilez.mobileprovision
+#        code-signing-identity:  'iOS Distribution'
+#        team-id: 'X7UJ388FXK'
+#        configuration: Release
 
 # ------------------------------------------------------
 
@@ -203,7 +216,7 @@ jobs:
         host: 'mac'
         target: 'desktop'
         arch: 'clang_64'
-        modules: 'qtremoteobjects qt5compat'
+        modules: 'qtremoteobjects qt5compat qtshadertools'
         dir: ${{ runner.temp }}
         setup-python: 'true'
         tools: 'tools_ifw'
@@ -225,12 +238,18 @@ jobs:
         export QIF_BIN_DIR="${{ runner.temp }}/Qt/Tools/QtInstallerFramework/${{ env.QIF_VERSION }}/bin"
         bash deploy/build_macos.sh
 
-    - name: 'Upload artifact'
+    - name: 'Upload installer artifact'
       uses: actions/upload-artifact@v3
       with:
-        name: AmneziaVPN_MacOS
+        name: AmneziaVPN_MacOS_installer
         path: AmneziaVPN.dmg
-        retention-days: 3
+        retention-days: 7
+    - name: 'Upload unpacked artifact'
+      uses: actions/upload-artifact@v3
+      with:
+        name: AmneziaVPN_MacOS_unpacked
+        path: deploy/build/client/AmneziaVPN.app
+        retention-days: 7
 
 # ------------------------------------------------------
 

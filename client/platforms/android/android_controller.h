@@ -11,6 +11,7 @@
 #include "ui/pages_logic/StartPageLogic.h"
 
 #include "protocols/vpnprotocol.h"
+#include "androidvpnactivity.h"
 
 using namespace amnezia;
 
@@ -42,6 +43,8 @@ public:
     const QJsonObject &vpnConfig() const;
     void setVpnConfig(const QJsonObject &newVpnConfig);
 
+    void startQrReaderActivity();
+
 signals:
     void connectionStateChanged(VpnProtocol::VpnConnectionState state);
 
@@ -50,13 +53,13 @@ signals:
     // to true and the "connectionDate" should be set to the activation date if
     // known.
     // If "status" is set to false, the backend service is considered unavailable.
-    void initialized(bool status, bool connected,
-                     const QDateTime& connectionDate);
+    void initialized(bool status, bool connected, const QDateTime& connectionDate);
+
+    void statusUpdated(QString totalRx, QString totalTx, QString endpoint, QString deviceIPv4);
+    void scheduleStatusCheckSignal();
 
 protected slots:
-
-protected:
-
+    void scheduleStatusCheckSlot();
 
 private:
     bool m_init = false;
@@ -69,6 +72,10 @@ private:
     std::function<void(const QString&)> m_logCallback;
 
     static void startActivityForResult(JNIEnv* env, jobject /*thiz*/, jobject intent);
+
+    bool isConnected = false;
+
+    void scheduleStatusCheck();
 };
 
 #endif // ANDROID_CONTROLLER_H

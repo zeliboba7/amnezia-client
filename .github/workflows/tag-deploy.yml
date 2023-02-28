@@ -141,5 +141,5 @@ jobs:
     - name: 'Upload'
       uses: actions/upload-artifact@v3
       with:
-        name: Release APK
+        name: Release ${{ env.ARTIFACT_EXTENSION }}
         path: AmneziaVPN-${{ env.ACTIONS_BUILD_TYPE }}-signed.${{ env.ARTIFACT_EXTENSION }}

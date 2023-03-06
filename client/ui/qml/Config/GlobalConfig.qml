@@ -10,9 +10,22 @@ Item {
 
     readonly property int defaultMargin: 20
 
+    function isIOs() {
+        if (Qt.platform.os == "ios") {
+            return true
+        }
+        return false
+    }
+
+    function isAndroid() {
+        if (Qt.platform.os == "android") {
+            return true
+        }
+        return false
+    }
+
     function isMobile() {
-        if (Qt.platform.os == "android" ||
-                Qt.platform.os == "ios") {
+        if (isAndroid() || isIOs()) {
             return true
         }
         return false

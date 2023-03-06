@@ -5,6 +5,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QStandardPaths>
+#include <QThread>
 #include <QUrl>
 
 #include <iostream>
@@ -15,6 +16,9 @@
 #ifdef AMNEZIA_DESKTOP
 #include <core/ipcclient.h>
 #endif
+
+const int LOG_FILE_SIZE_THRESHOLD_BYTES = 1000;
+const int LOG_FILE_CUTOFF_SIZE_BYTES = 200;
 
 QFile Logger::m_file;
 QTextStream Logger::m_textStream;
@@ -31,10 +35,61 @@ void debugMessageHandler(QtMsgType type, const QMessageLogContext& context, cons
         return;
     }
 
+    QMetaObject::invokeMethod(&Logger::Instance(), "newMessage", Qt::AutoConnection,
+                              Q_ARG(QtMsgType, type), Q_ARG(QMessageLogContext, context), Q_ARG(QString, msg));
+
+}
+
+void Logger::newMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    if (m_file.size() >= LOG_FILE_SIZE_THRESHOLD_BYTES + msg.size()) {
+        cutoffLogStart();
+    }
+
+    writeMessageToLog(type, context, msg);
+}
+
+void Logger::writeMessageToLog(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
     Logger::m_textStream << qFormatLogMessage(type, context, msg) << Qt::endl << Qt::flush;
     Logger::appendAllLog(qFormatLogMessage(type, context, msg));
 
     std::cout << qFormatLogMessage(type, context, msg).toStdString() << std::endl << std::flush;
+}
+
+void Logger::cutoffLogStart()
+{
+    m_file.seek(0);
+    QByteArray all = m_file.readAll();
+    std::cout << "WUTT all " << all.toStdString() << std::endl;
+
+    // -----
+
+    m_file.seek(LOG_FILE_CUTOFF_SIZE_BYTES);
+
+    QByteArray tmp = m_file.readAll();
+    std::cout << "WUTT rest " << tmp.toStdString() << std::endl;
+
+//    m_file.resize(0);
+//    m_file.flush();
+
+    m_file.close();
+    m_file.remove();
+    if (!m_file.open(QIODevice::ReadWrite)) {
+        qWarning() << "Cannot open log file:" << m_logFileName;
+        return;
+    }
+    m_file.setTextModeEnabled(true);
+    m_textStream.setDevice(&m_file);
+
+    m_file.write(tmp);
+    m_file.flush();
+
+    // -----
+
+    m_file.seek(0);
+    QByteArray res = m_file.readAll();
+    std::cout << "WUTT res " << res.toStdString() << std::endl;
 }
 
 Logger &Logger::Instance()
@@ -67,16 +122,16 @@ bool Logger::init()
     }
 
     m_file.setFileName(appDir.filePath(m_logFileName));
-    if (!m_file.open(QIODevice::Append)) {
+    if (!m_file.open(QIODevice::ReadWrite)) {
         qWarning() << "Cannot open log file:" << m_logFileName;
         return false;
     }
     m_file.setTextModeEnabled(true);
     m_textStream.setDevice(&m_file);
 
-#ifndef QT_DEBUG
+// #ifndef QT_DEBUG
     qInstallMessageHandler(debugMessageHandler);
-#endif
+// #endif
 
     return true;
 }
@@ -91,7 +146,24 @@ void Logger::deInit()
 
 QString Logger::userLogsDir()
 {
-    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/log";
+    QString logPath = "";
+
+#ifdef Q_OS_ANDROID
+    QList<QString> availableLocations = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
+    for (int i = 0; i < availableLocations.size(); i++) {
+        QString possibleLogLocation = availableLocations.at(i);
+        if (!possibleLogLocation.isEmpty() && possibleLogLocation.contains("/Android/data/")) {
+            logPath = possibleLogLocation;
+            break;
+        }
+    }
+#endif
+
+    if (logPath.isEmpty()) {
+        logPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    }
+
+    return logPath + "/log";
 }
 
 QString Logger::userLogsFilePath()

@@ -89,6 +89,8 @@ PageBase {
             BlueButtonType {
                 Layout.fillWidth: true
                 text: qsTr("Open logs folder")
+                visible: !GC.isAndroid()
+                enabled: !GC.isAndroid()
                 onClicked: {
                     AppSettingsLogic.onPushButtonOpenLogsClicked()
                 }

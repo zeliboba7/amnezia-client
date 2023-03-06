@@ -45,7 +45,14 @@ private:
     static QTextStream m_textStream;
     static QString m_logFileName;
 
+private:
+    void writeMessageToLog(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+    void cutoffLogStart();
+
     friend void debugMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg);
+
+private slots:
+    void newMessage(QtMsgType type, const QMessageLogContext& context, const QString& msg);
 };
 
 #endif // LOGGER_H

@@ -17,8 +17,8 @@
 #include <core/ipcclient.h>
 #endif
 
-const int LOG_FILE_SIZE_THRESHOLD_BYTES = 1000;
-const int LOG_FILE_CUTOFF_SIZE_BYTES = 200;
+const int LOG_FILE_SIZE_THRESHOLD_BYTES = 10 * 1024 * 1024;
+const int LOG_FILE_CUTOFF_SIZE_BYTES = 2 * 1024 * 1024;
 
 QFile Logger::m_file;
 QTextStream Logger::m_textStream;
@@ -59,22 +59,13 @@ void Logger::writeMessageToLog(QtMsgType type, const QMessageLogContext &context
 
 void Logger::cutoffLogStart()
 {
-    m_file.seek(0);
-    QByteArray all = m_file.readAll();
-    std::cout << "WUTT all " << all.toStdString() << std::endl;
-
-    // -----
-
     m_file.seek(LOG_FILE_CUTOFF_SIZE_BYTES);
 
     QByteArray tmp = m_file.readAll();
-    std::cout << "WUTT rest " << tmp.toStdString() << std::endl;
-
-//    m_file.resize(0);
-//    m_file.flush();
 
     m_file.close();
     m_file.remove();
+
     if (!m_file.open(QIODevice::ReadWrite)) {
         qWarning() << "Cannot open log file:" << m_logFileName;
         return;
@@ -84,12 +75,6 @@ void Logger::cutoffLogStart()
 
     m_file.write(tmp);
     m_file.flush();
-
-    // -----
-
-    m_file.seek(0);
-    QByteArray res = m_file.readAll();
-    std::cout << "WUTT res " << res.toStdString() << std::endl;
 }
 
 Logger &Logger::Instance()

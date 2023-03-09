@@ -70,6 +70,37 @@ androidExtensions {
     experimental = true
 }
 
+def getVersionName = { ->
+    def result = ""
+
+    def file = new File(projectDir.toString()+"/../version.h").eachLine { line ->
+        def pattern = ~/.+APP_VERSION\s+"([\d+\.+]+)"/
+        def matcher = pattern.matcher(line)
+
+        if (matcher.matches()) {
+            result = matcher.group(1)
+        }
+    }
+
+    if (result.isEmpty()) {
+        throw new GradleException("Can't get version of the App! Abort.")
+    }
+
+    println("*** version name: ${result}")
+
+    return result
+}
+
+def getVersionCode = { ->
+//    def result = (System.currentTimeMillis() / 10000).toInteger()
+    def verName = getVersionName()
+    def result = verName.replaceAll("[.]","").toInteger()
+
+    println("*** version code: ${result}")
+
+    return result
+}
+
 android {
     /*******************************************************
      * The following variables:
@@ -136,8 +167,8 @@ android {
         resConfig "en"
         minSdkVersion = 24
         targetSdkVersion = 31
-        versionCode 10 // Change to a higher number
-        versionName "2.0.10" // Change to a higher number
+        versionCode getVersionCode()
+        versionName getVersionName()
 
         javaCompileOptions.annotationProcessorOptions.arguments = [
             "room.schemaLocation": "${qt5AndroidDir}/schemas".toString()

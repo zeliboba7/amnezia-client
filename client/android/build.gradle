@@ -86,17 +86,12 @@ def getVersionName = { ->
         throw new GradleException("Can't get version of the App! Abort.")
     }
 
-    println("*** version name: ${result}")
-
     return result
 }
 
 def getVersionCode = { ->
-//    def result = (System.currentTimeMillis() / 10000).toInteger()
     def verName = getVersionName()
     def result = verName.replaceAll("[.]","").toInteger()
-
-    println("*** version code: ${result}")
 
     return result
 }

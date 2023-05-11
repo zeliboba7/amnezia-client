@@ -44,6 +44,7 @@ public:
 
     void startQrReaderActivity();
     void copyTextToClipboard(QString text);
+    void pasteTextFromClipboard();
 
 signals:
     void connectionStateChanged(VpnProtocol::VpnConnectionState state);

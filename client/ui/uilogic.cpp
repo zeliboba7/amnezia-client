@@ -46,6 +46,7 @@
 
 #ifdef Q_OS_ANDROID
 #include "platforms/android/android_controller.h"
+#include "platforms/android/androidvpnactivity.h"
 #endif
 
 #include "platforms/ios/MobileUtils.h"
@@ -141,6 +142,10 @@ void UiLogic::initializeUiLogic()
          emit VpnProtocol::Error;
          return;
     }
+
+    connect(AndroidVPNActivity::instance(), &AndroidVPNActivity::eventClipboardTextReceived, [this](QString text) {
+        emit this->pasteTextReceived(text);
+    });
 #endif
 
     m_notificationHandler = NotificationHandler::create(qmlRoot());
@@ -601,6 +606,23 @@ ErrorCode UiLogic::addAlreadyInstalledContainersGui(bool &isServerCreated)
 
     return ErrorCode::NoError;
 }
+
+#if defined(Q_OS_ANDROID)
+void UiLogic::copyInvoked(QString text)
+{
+    AndroidController::instance()->copyTextToClipboard(text);
+}
+
+void UiLogic::cutInvoked(QString text)
+{
+    AndroidController::instance()->copyTextToClipboard(text);
+}
+
+void UiLogic::pasteInvoked()
+{
+    AndroidController::instance()->pasteTextFromClipboard();
+}
+#endif
 
 bool UiLogic::isContainerAlreadyAddedToGui(DockerContainer container)
 {

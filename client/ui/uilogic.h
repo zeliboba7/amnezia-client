@@ -124,6 +124,12 @@ public:
 
     Q_INVOKABLE amnezia::ErrorCode addAlreadyInstalledContainersGui(bool &isServerCreated);
 
+#if defined(Q_OS_ANDROID)
+    Q_INVOKABLE void copyInvoked(QString text);
+    Q_INVOKABLE void cutInvoked(QString text);
+    Q_INVOKABLE void pasteInvoked();
+#endif
+
     void shareTempFile(const QString &suggestedName, QString ext, const QString& data);
     static QString getOpenFileName(QWidget *parent = nullptr,
                                    const QString &caption = QString(),
@@ -146,6 +152,8 @@ signals:
     void raise();
     void toggleLogPanel();
     void showWarningMessage(QString message);
+
+    void pasteTextReceived(QString text);
 
 private slots:
     // containers - INOUT arg

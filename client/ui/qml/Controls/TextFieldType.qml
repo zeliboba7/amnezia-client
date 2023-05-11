@@ -39,14 +39,58 @@ TextField {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.RightButton
-        onClicked: contextMenu.open()
+//    MouseArea {
+//        anchors.fill: parent
+//        acceptedButtons: Qt.RightButton
+//        onClicked: {
+//            if (Qt.platform.os != "android") {
+//                console.log("***", "onClicked()")
+//                contextMenu.open()
+//            }
+//        }
+//    }
+
+//    onReleased: (event) => {
+//        console.log("*** onReleased")
+//        console.log("*** event: ", event.button)
+
+//        if (event.button === Qt.RightButton) {
+//            contextMenu.popup()
+//        }
+//    }
+
+    onPressAndHold: (event) => {
+        if (Qt.platform.os == "android") {
+            console.log("**** onPressAndHold")
+            console.log("**** event: ", event.button)
+            contextMenu.show()
+        }
     }
 
-    ContextMenu {
+//    ContextMenu {
+//        id: contextMenu
+//        textObj: root
+//    }
+
+    AndroidContextMenu {
         id: contextMenu
         textObj: root
+        x: 16
+        y: -height - 4
+
+        Connections {
+            target: UiLogic
+
+            function onPasteTextReceived(text) {
+                console.log("**** isPasteRequested: ", contextMenu.isPasteRequested)
+                if (contextMenu.isPasteRequested) {
+                    console.log("**** pasted text: ", text)
+                    root.text = text
+
+                    contextMenu.isPasteRequested = false
+                    contextMenu.hide()
+                }
+            }
+        }
     }
 }

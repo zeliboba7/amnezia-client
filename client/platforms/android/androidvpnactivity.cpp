@@ -70,7 +70,14 @@ void AndroidVPNActivity::copyTextToClipboard(QString text)
     QJniObject::callStaticMethod<void>(
                 CLASSNAME,
                 "putTextToClipboard", "(Ljava/lang/String;)V",
-                QJniObject::fromString(text).object<jstring>());
+        QJniObject::fromString(text).object<jstring>());
+}
+
+void AndroidVPNActivity::askTextFromClipboard()
+{
+    QJniObject::callStaticMethod<void>(
+        CLASSNAME,
+        "askTextFromClipboard", "()V");
 }
 
 // static
@@ -147,6 +154,9 @@ void AndroidVPNActivity::handleActivityMessage(int code, const QString &data)
     switch (mode) {
     case UIEvents::QR_CODED_DECODED:
         emit eventQrCodeReceived(data);
+        break;
+    case UIEvents::TEXT_FROM_CLIPBOARD:
+        emit eventClipboardTextReceived(data);
         break;
     default:
         Q_ASSERT(false);

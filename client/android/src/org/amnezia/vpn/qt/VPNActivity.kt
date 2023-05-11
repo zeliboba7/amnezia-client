@@ -7,6 +7,7 @@ package org.amnezia.vpn.qt;
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipDescription.MIMETYPE_TEXT_PLAIN
 import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.Context
@@ -76,6 +77,10 @@ class VPNActivity : org.qtproject.qt.android.bindings.QtActivity() {
 
         @JvmStatic fun putTextToClipboard(text: String) {
             VPNActivity.getInstance().putToClipboard(text)
+        }
+
+        @JvmStatic fun askTextFromClipboard() {
+            VPNActivity.getInstance().requestTextFromClipboard()
         }
     }
 
@@ -263,6 +268,7 @@ class VPNActivity : org.qtproject.qt.android.bindings.QtActivity() {
     private val EVENT_DISCONNECTED = 2
 
     private val UI_EVENT_QR_CODE_RECEIVED = 0
+    private val UI_EVENT_TEXT_FROM_CLIPBOARD = 1
 
     fun onPermissionRequest(code: Int, data: Parcel?) {
         if (code != EVENT_PERMISSION_REQUIRED) {
@@ -325,6 +331,27 @@ class VPNActivity : org.qtproject.qt.android.bindings.QtActivity() {
             if (clipboard != null) {
                 val clip: ClipData = ClipData.newPlainText("", text)
                 clipboard.setPrimaryClip(clip)
+
+                Toast.makeText(this, "Copied", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun requestTextFromClipboard() {
+        this.runOnUiThread {
+            val clipboard = applicationContext.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager?
+
+            if (clipboard != null) {
+
+                if (clipboard.hasPrimaryClip() &&
+                        clipboard.primaryClipDescription!!.hasMimeType(MIMETYPE_TEXT_PLAIN)) {
+
+                    val item = clipboard.primaryClip?.getItemAt(0)
+                    val pasteData = item?.text
+                    if (pasteData != null) {
+                        onActivityMessage(UI_EVENT_TEXT_FROM_CLIPBOARD, pasteData.toString())
+                    }
+                }
             }
         }
     }

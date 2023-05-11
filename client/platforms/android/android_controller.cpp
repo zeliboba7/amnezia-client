@@ -11,6 +11,10 @@
 #include <QTextCodec>
 #include <QTimer>
 
+#include <QClipboard>
+#include <QApplication>
+
+#include "androidutils.h"
 #include "android_controller.h"
 #include "private/qandroidextras_p.h"
 #include "ui/pages_logic/StartPageLogic.h"
@@ -270,6 +274,11 @@ void AndroidController::startQrReaderActivity()
 void AndroidController::copyTextToClipboard(QString text)
 {
     AndroidVPNActivity::instance()->copyTextToClipboard(text);
+}
+
+void AndroidController::pasteTextFromClipboard()
+{
+    AndroidVPNActivity::instance()->askTextFromClipboard();
 }
 
 void AndroidController::scheduleStatusCheckSlot()

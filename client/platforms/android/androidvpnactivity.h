@@ -61,6 +61,7 @@ typedef enum ServiceEvents ServiceEvents;
 
 enum UIEvents {
     QR_CODED_DECODED = 0,
+    TEXT_FROM_CLIPBOARD = 1,
 };
 typedef enum UIEvents UIEvents;
 
@@ -77,6 +78,7 @@ public:
     static void startQrCodeReader();
     static void saveFileAs(QString fileContent, QString suggestedFilename);
     static void copyTextToClipboard(QString text);
+    static void askTextFromClipboard();
 
 signals:
     void serviceConnected();
@@ -89,6 +91,7 @@ signals:
     void eventActivationError(const QString& data);
     void eventConfigImport(const QString& data);
     void eventQrCodeReceived(const QString& data);
+    void eventClipboardTextReceived(const QString& data);
 
 private:
     AndroidVPNActivity();

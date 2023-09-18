@@ -49,6 +49,8 @@ PageType {
                 width: parent.width
                 height: listview.contentItem.height
 
+                cacheBuffer: 1024
+
                 clip: true
                 interactive: false
 

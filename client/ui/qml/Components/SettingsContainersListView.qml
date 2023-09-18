@@ -19,6 +19,8 @@ ListView {
     width: parent.width
     height: root.contentItem.height
 
+    cacheBuffer: 1024
+
     clip: true
     interactive: false
 

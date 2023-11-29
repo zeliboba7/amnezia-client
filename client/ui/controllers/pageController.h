@@ -119,6 +119,8 @@ signals:
     void showTopCloseButton(bool visible);
     void forceCloseDrawer();
 
+    void escapePressed();
+
 private:
     QSharedPointer<ServersModel> m_serversModel;
 

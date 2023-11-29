@@ -41,6 +41,7 @@ Window  {
         }
 
         Keys.onPressed: function(event) {
+            console.log("keyPressEvent")
             PageController.keyPressEvent(event.key)
             event.accepted = true
         }

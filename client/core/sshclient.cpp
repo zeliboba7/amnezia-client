@@ -9,6 +9,11 @@
 const uint32_t S_IRWXU = 0644;
 #endif
 
+int get_file_size(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    return file.is_open() ? static_cast<int>(file.tellg()) : -1;
+}
+
 namespace libssh {
     const QString libsshTimeoutError = "Timeout connecting to";
 
@@ -251,7 +256,7 @@ namespace libssh {
                 return closeSftpSession();
             }
 
-            int localFileSize = std::filesystem::file_size(localPath);
+            int localFileSize = get_file_size(localPath);
             int chunksCount = localFileSize / (bufferSize);
 
             std::ifstream fin(localPath, std::ios::binary | std::ios::in);

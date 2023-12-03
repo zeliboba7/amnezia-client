@@ -233,14 +233,14 @@ QJsonObject ImportController::extractWireGuardConfig(const QString &data)
     QRegularExpressionMatch hostNameAndPortMatch = hostNameAndPortRegExp.match(data);
     QString hostName;
     QString port;
-    if (hostNameAndPortMatch.hasCaptured(1)) {
+    if (hostNameAndPortMatch.hasMatch()) {
         hostName = hostNameAndPortMatch.captured(1);
     } else {
         qDebug() << "Failed to import profile";
         emit importErrorOccurred(errorString(ErrorCode::ImportInvalidConfigError));
     }
 
-    if (hostNameAndPortMatch.hasCaptured(2)) {
+    if (hostNameAndPortMatch.hasMatch()) {
         port = hostNameAndPortMatch.captured(2);
     } else {
         port = protocols::wireguard::defaultPort;
